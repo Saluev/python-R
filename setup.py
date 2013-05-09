@@ -19,13 +19,16 @@ try:
 except:
     print "Encountered problems with R."
     print "Make sure you've installed R, Rcpp and RInside packages."
+    print "(To install Rcpp and RInside, run R (sudo R for Linux) and type"
+    print "> install.packages(\"Rcpp\")"
+    print "> install.packages(\"RInside\")\n)"
     sys.exit(2)
 
 paths = paths.split("\n")
 # a fragile line to get correct include paths
 include_paths = [paths[0][:-1]] + [os.path.join(path[:-1], "include") for path in paths[1:-1]] #+ [np.get_include()]
 library_paths = [os.path.join(os.path.split(paths[0][:-1])[0], "lib")] + [os.path.join(path[:-1], "lib") for path in paths[1:-1]]
-libraries = ['R', 'RInside']#, 'Rcpp']
+libraries = ['R', 'Rcpp', 'RInside', 'rt']
 
 print "Include paths:", ", ".join(include_paths)
 
@@ -46,7 +49,10 @@ extensions = [libR_ext]
 setup(
     name="libR",
     version='0.1',
+    description='Python R & RInside Wrapper',
     author='Tigran Saluev',
+    author_email='tigran.saluev(at)gmail.com',
+    url='http://github.com/Saluev/python-R',
     ext_modules=extensions,
     cmdclass = {'build_ext': build_ext},
     #data_files = ('.', data_files)

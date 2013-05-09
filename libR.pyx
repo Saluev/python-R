@@ -461,13 +461,11 @@ cdef extern from "RInside.h":
         RInside(const int argc, const char** argv,
             const bool loadRcpp, const bool verbose, const bool interactive)
         
-        #Environment.Binding operator[](const string &name) # libRaux::setBinding instead
+        SEXP operator[](const string &name)
         
         int  parseEval(const string &line, SEXP &ans)       # parse line, return in ans error code rc
         void parseEvalQ(const string &line)                 # parse line, no return (throws on error)
         void parseEvalQNT(const string &line)               # parse line, no return (no throw)
-        #RInsideProxy parseEval(const string &line)          # parse line, return SEXP (throws on error)
-        #RInsideProxy parseEvalNT(const string &line)        # parse line, return SEXP (no throw)
         SEXP parseEval(const string &line)                  # parse line, return SEXP (throws on error)
         SEXP parseEvalNT(const string &line)                # parse line, return SEXP (no throw)
         
@@ -513,7 +511,7 @@ cdef object SEXPToObject(SEXP arg):
         if not Rf_isNull(t1):
             result = {}
             for i in range(size):
-                key = str(CHAR(STRING_ELT(t1, i))) # TODO: figure out wtf is STRING_ELT(t1, i)
+                key = str(CHAR(STRING_ELT(t1, i)))
                 value = SEXPToObject(VECTOR_ELT(arg, i))
                 result[key] = value
         else:
@@ -572,7 +570,7 @@ cdef object SEXPToObject(SEXP arg):
             if dims != None:
                 result = result.reshape(dims, order='F')
     elif Rf_isObject(arg):
-        # TODO: objects
+        # TODO: objects (wtf are objects?)
         pass
     else:
         print "ERROR: unsupported object type"
@@ -679,7 +677,8 @@ cdef class pyRInside:
     
     cdef object objects
     
-    def __cinit__(self, int argc, argv, bool loadRcpp = False, bool verbose = False, bool interactive  = False):
+    def __cinit__(self, argv = [], bool loadRcpp = False, bool verbose = False, bool interactive  = False):
+        cdef int argc = len(argv)
         cdef char **cargv = <char**>malloc(sizeof(char*) * argc)
         cdef int i, j
         for i in range(argc):
@@ -703,7 +702,8 @@ cdef class pyRInside:
     
     def __getitem__(self, key):
         cdef string ckey = key
-        return SEXPToObject(getBinding(self.rinside, ckey))
+        return SEXPToObject(deref(self.rinside)[ckey])
+        #return SEXPToObject(getBinding(self.rinside, ckey))
     
     def __setitem__(self, key, val):
         cdef string ckey = key
